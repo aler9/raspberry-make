@@ -19,7 +19,7 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
 
 3. Edit `config` to suit your needs.
 
-4. Edit `00base/playbook.yml` to suit your needs. Configuration format is the one of Ansible playbooks, described in their [documentation](https://docs.ansible.com/ansible/latest/index.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Rules will be executed sequentially.
+4. Edit `00base/playbook.yml` to suit your needs. Configuration format is the one of Ansible playbooks, described in their [documentation](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Rules will be executed sequentially.
 
 5. Launch:
    ```
