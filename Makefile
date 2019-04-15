@@ -1,3 +1,5 @@
+# raspberry-make
+# https://github.com/gswly/raspberry-make
 
 include config
 
