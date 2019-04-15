@@ -121,8 +121,11 @@ all-nodocker: /build/final.img
 
 	mv $(TIMG) $@
 
+clean:
+	$(call IN_DOCKER, clean-nodocker)
+
+clean-nodocker:
+	rm -rf /build/*
+
 self-update:
 	curl -O https://raw.githubusercontent.com/gswly/raspberry-make/master/Makefile
-
-clean:
-	rm -rf $(BUILD_DIR)/*
