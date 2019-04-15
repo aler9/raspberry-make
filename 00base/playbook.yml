@@ -1,0 +1,63 @@
+
+- hosts: all
+  gather_facts: yes
+  tasks:
+
+  - name: set_hostname
+    become: yes
+    hostname: name=my_rpi
+
+  - name: set_timezone
+    become: yes
+    timezone: name=Europe/Paris
+
+  - name: disable_disk_expansion
+    become: yes
+    replace:
+      path: /boot/cmdline.txt
+      regexp: 'init=[^ ]+'
+      replace: ''
+
+  - name: disable_disk_resize
+    become: yes
+    shell: update-rc.d resize2fs_once remove && rm /etc/init.d/resize2fs_once
+
+  - name: remove_nologin
+    become: yes
+    file:
+      path: /run/nologin
+      state: absent
+
+  - name: apt_cleanup
+    become: yes
+    apt:
+      state: absent
+      name:
+      - '*-dev'
+      - avahi-daemon
+      - bash-completion
+      - bluez*
+      - build-essential
+      - cifs-utils
+      - gdb
+      - libpython2*
+      - libraspberrypi-doc
+      - man-db
+      - manpages
+      - dphys-swapfile
+      - python2*
+      - samba*
+      - triggerhappy
+      - vim*
+      - v4l-utils
+
+  - name: apt_autoremove
+    become: yes
+    apt:
+      autoremove: yes
+
+  - name: apt_dist_upgrade
+    become: yes
+    apt:
+      update_cache: yes
+      upgrade: dist
