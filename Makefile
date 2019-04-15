@@ -28,14 +28,14 @@ RUN apk add --no-cache \\ \n\
     && rm -rf /var/lib/apt/lists/* \n\
 WORKDIR /src \n\
 COPY . ./ \n\
-" | docker build . -f - -t imagemaker
+" | docker build . -f - -t raspberry-make
 docker run --rm --privileged multiarch/qemu-user-static:register --reset >/dev/null
 sudo modprobe loop
 sudo modprobe vfat
 docker run --rm -it \
 	-v $(BUILD_DIR):/build \
 	--privileged \
-	imagemaker make $(1)
+	raspberry-make make $(1)
 endef
 
 all:
