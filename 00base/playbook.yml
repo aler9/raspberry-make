@@ -5,7 +5,7 @@
 
   - name: set_hostname
     become: yes
-    hostname: name=my_rpi
+    hostname: name=my-rpi
 
   - name: set_timezone
     become: yes
@@ -55,9 +55,3 @@
     become: yes
     apt:
       autoremove: yes
-
-  - name: apt_dist_upgrade
-    become: yes
-    apt:
-      update_cache: yes
-      upgrade: dist
