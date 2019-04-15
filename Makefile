@@ -41,7 +41,7 @@ endef
 all:
 	$(call IN_DOCKER, all-nodocker)
 
-nodocker: /build/final.img
+all-nodocker: /build/final.img
 
 # download base image
 /build/base.tmp:
