@@ -12,12 +12,6 @@ define NL
 $(blank)
 endef
 
-self-update:
-	curl -O https://raw.githubusercontent.com/gswly/raspberry-make/master/Makefile
-
-clean:
-	rm -rf $(BUILD_DIR)/*
-
 define IN_DOCKER
 echo "FROM multiarch/alpine:armhf-v3.8 \n\
 FROM amd64/alpine:3.9 \n\
@@ -126,3 +120,9 @@ nodocker: /build/final.img
 	losetup -d /dev/loop0
 
 	mv $(TIMG) $@
+
+self-update:
+	curl -O https://raw.githubusercontent.com/gswly/raspberry-make/master/Makefile
+
+clean:
+	rm -rf $(BUILD_DIR)/*
