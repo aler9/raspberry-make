@@ -63,7 +63,7 @@ all-nodocker: /build/output.img
 	@losetup -d /dev/loop0 2>/dev/null || exit 0
 	ROOT_START=$$(fdisk -l $(TIMG) | tail -n1 | awk '{print $$4}') \
 		&& losetup /dev/loop0 $(TIMG) -o $$(($$ROOT_START*512))
-	e2fsck -f /dev/loop0
+	e2fsck -y -f /dev/loop0
 	resize2fs /dev/loop0
 	losetup -d /dev/loop0
 
