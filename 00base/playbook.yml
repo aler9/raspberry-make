@@ -31,6 +31,7 @@
   - name: apt_cleanup
     become: yes
     apt:
+      autoremove: yes
       state: absent
       name:
       - '*-dev'
@@ -50,8 +51,3 @@
       - triggerhappy
       - vim*
       - v4l-utils
-
-  - name: apt_autoremove
-    become: yes
-    apt:
-      autoremove: yes
