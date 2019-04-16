@@ -42,7 +42,7 @@ endef
 all:
 	$(call IN_DOCKER, all-nodocker)
 
-all-nodocker: /build/final.img
+all-nodocker: /build/output.img
 
 # download base image
 /build/base.tmp:
@@ -52,7 +52,7 @@ all-nodocker: /build/final.img
 	mv *.img $@
 
 # expand and apply playbooks
-/build/final.img: /build/base.tmp
+/build/output.img: /build/base.tmp
 	$(eval TIMG := $@.tmp)
 	cp $< $(TIMG)
 

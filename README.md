@@ -25,7 +25,7 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
    ```
    make
    ```
-   the image will be available in `build/final.img`.
+   the resulting image will be available in `build/output.img`.
 
 ## Other commands
 
