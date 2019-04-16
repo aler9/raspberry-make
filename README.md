@@ -11,9 +11,9 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
    * Docker
    * Makefile
 
-2. Download the Makefile and the example configuration:
+2. Create an empty folder and download needed files:
    ```
-   curl -L https://github.com/gswly/raspberry-make/tarball/master | tar zxvf -
+   curl -L https://github.com/gswly/raspberry-make/tarball/master | tar zxvf - --strip-components=1
    rm README.md LICENSE
    ```
 
