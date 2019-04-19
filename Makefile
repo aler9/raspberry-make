@@ -8,6 +8,8 @@ SIZE ?= 2G
 HNAME ?= my-rpi
 RESOLVCONF_TYPE ?= static
 RESOLVCONF_CONTENT ?= 8.8.8.8
+ADDITIONAL_HOSTS ?=
+export ADDITIONAL_HOSTS
 BUILD_DIR ?= $(PWD)/build
 
 blank :=
@@ -136,7 +138,7 @@ else
 	rm /mnt/etc/resolv.conf
 	ln -s $(RESOLVCONF_CONTENT) /mnt/etc/resolv.conf
 endif
-	ls -l /mnt/etc/resolv.conf
+	echo "$$ADDITIONAL_HOSTS" >> /mnt/etc/hosts
 
 	umount /mnt/boot
 	umount /mnt
