@@ -1,0 +1,8 @@
+
+- hosts: all
+  gather_facts: no
+  tasks:
+
+  - name: enable
+    become: yes
+    command: systemctl enable ssh

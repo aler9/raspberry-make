@@ -3,13 +3,11 @@
   gather_facts: yes
   tasks:
 
-  - name: set_hostname
-    become: yes
-    hostname: name=my-rpi
-
   - name: set_timezone
     become: yes
-    timezone: name=Europe/Paris
+    copy:
+      dest: /etc/timezone
+      content: Europe/Paris
 
   - name: disable_disk_expansion
     become: yes
@@ -21,12 +19,6 @@
   - name: disable_disk_resize
     become: yes
     shell: update-rc.d resize2fs_once remove && rm /etc/init.d/resize2fs_once
-
-  - name: remove_nologin
-    become: yes
-    file:
-      path: /run/nologin
-      state: absent
 
   - name: apt_cleanup
     become: yes

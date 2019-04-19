@@ -3,8 +3,11 @@
 
 include config
 
-IMAGE_BASE ?= https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
-IMAGE_EXPAND ?= 2G
+BASE ?= https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
+SIZE ?= 1G
+HNAME ?= my-rpi
+RESOLVCONF_TYPE ?= static
+RESOLVCONF_CONTENT ?= 8.8.8.8
 BUILD_DIR ?= $(PWD)/build
 
 blank :=
@@ -13,120 +16,133 @@ define NL
 $(blank)
 endef
 
-define IN_DOCKER
-echo "FROM multiarch/alpine:armhf-v3.8 \n\
-FROM amd64/alpine:3.9 \n\
-COPY --from=0 /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static \n\
-RUN apk add --no-cache \\ \n\
-    make \\ \n\
-    curl \\ \n\
-    unzip \\ \n\
-    e2fsprogs \\ \n\
-    e2fsprogs-extra \\ \n\
-    openssh-client \\ \n\
-    ansible \\ \n\
-    rsync \\ \n\
-    && rm -rf /var/lib/apt/lists/* \n\
-WORKDIR /src \n\
+BASEHASH := $$(echo -n '$(BASE)' | sha256sum | head -c 8)
+ROOT_START_SECTORS = $$(fdisk -l $(1) | tail -n1 | awk '{print $$2}')
+BOOT_START_SECTORS = $$(fdisk -l $(1) | tail -n2 | head -n1 | awk '{print $$2}')
+ROOT_LEN_SECTORS = $$(fdisk -l $(1) | tail -n1 | awk '{print $$4}')
+BOOT_LEN_SECTORS = $$(fdisk -l $(1) | tail -n2 | head -n1 | awk '{print $$4}')
+ROOT_START_BYTES = $$(($(ROOT_START_SECTORS)*512))
+BOOT_START_BYTES = $$(($(BOOT_START_SECTORS)*512))
+ROOT_LEN_BYTES = $$(($(ROOT_LEN_SECTORS)*512))
+BOOT_LEN_BYTES = $$(($(BOOT_LEN_SECTORS)*512))
+
+define PLAYBOOK_RUN
+@echo -e "FROM raspberry-make-cur \n\
 COPY . ./ \n\
-" | docker build . -f - -t raspberry-make
-docker run --rm --privileged multiarch/qemu-user-static:register --reset >/dev/null
-sudo modprobe loop
-sudo modprobe vfat
-docker run --rm -it \
-	-v $(BUILD_DIR):/build \
-	--privileged \
-	raspberry-make make $(1)
+USER pi \n\
+RUN /ansible/lib/ld-musl-x86_64.so.1 --library-path=/ansible/lib:/ansible/usr/lib \
+	/ansible/usr/bin/python3.6 /ansible/usr/bin/ansible-playbook -i /ansible/inv.ini playbook.yml \n\
+USER root \n\
+RUN rm -rf ./* \n\
+" | docker build $(D) -f - -t raspberry-make-cur
 endef
 
 all:
-	$(call IN_DOCKER, all-nodocker)
+  # build container and enter
+	@echo "FROM amd64/alpine:3.9 \n\
+	RUN apk add --no-cache make docker e2fsprogs dosfstools rsync util-linux" \
+	| docker build - -t raspberry-make
+	sudo modprobe loop
+	sudo modprobe vfat
+	docker run --rm --privileged \
+	-v $(PWD):/s:ro -v $(BUILD_DIR):/b -v /var/run/docker.sock:/var/run/docker.sock:ro \
+	raspberry-make sh -c "cd /s && make indocker"
 
-all-nodocker: /build/output.img
-
-# download base image
-/build/base.tmp:
-	curl -L -o img.zip $(IMAGE_BASE)
-	unzip img.zip
-	rm img.zip
-	mv *.img $@
-
-# expand and apply playbooks
-/build/output.img: /build/base.tmp
-	$(eval TIMG := $@.tmp)
-	cp $< $(TIMG)
-
-  # expand
-	truncate -s $(IMAGE_EXPAND) $(TIMG)
-	ROOT_START=$$(fdisk -l $(TIMG) | tail -n1 | awk '{print $$4}') \
-		&& printf "d;2;n;p;2;$$ROOT_START;;w;" | tr ';' '\n' | fdisk $(TIMG) || exit 0
-	@losetup -d /dev/loop0 2>/dev/null || exit 0
-	ROOT_START=$$(fdisk -l $(TIMG) | tail -n1 | awk '{print $$4}') \
-		&& losetup /dev/loop0 $(TIMG) -o $$(($$ROOT_START*512))
-	e2fsck -y -f /dev/loop0
-	resize2fs /dev/loop0
-	losetup -d /dev/loop0
-
-  # mount chroot
+indocker:
 	@losetup -d /dev/loop0 2>/dev/null || exit 0
 	@losetup -d /dev/loop1 2>/dev/null || exit 0
-	ROOT_START=$$(fdisk -l $(TIMG) | tail -n1 | awk '{print $$4}') \
-		&& losetup /dev/loop0 $(TIMG) -o $$(($$ROOT_START*512))
+	@rm -rf /b/*
+
+  # download and import only if necessary
+ifeq ($(shell docker image inspect raspberry-make-base-$(BASEHASH) >/dev/null 2>&1 || echo 1),1)
+  # download
+	wget -O /tmp/base.tmp.zip $(BASE)
+	cd /tmp && unzip base.tmp.zip
+	rm /tmp/base.tmp.zip
+	mv /tmp/*img /tmp/base.tmp
+
+  # mount root and boot, save partition table, save /etc/hosts
+	losetup /dev/loop0 /tmp/base.tmp -o $(call ROOT_START_BYTES,/tmp/base.tmp)
+	losetup /dev/loop1 /tmp/base.tmp -o $(call BOOT_START_BYTES,/tmp/base.tmp)
 	mount /dev/loop0 /mnt
-	BOOT_START=$$(fdisk -l $(TIMG) | tail -n2 | head -n1 | awk '{print $$4}') \
-		&& losetup /dev/loop1 $(TIMG) -o $$(($$BOOT_START*512))
 	mount /dev/loop1 /mnt/boot
-	mount --bind /proc /mnt/proc
-	mount --bind /sys /mnt/sys
-	mount --bind /dev /mnt/dev
-	mount --bind /dev/pts /mnt/dev/pts
-	mount --bind /etc/resolv.conf /mnt/etc/resolv.conf
-	cp /usr/bin/qemu-arm-static /mnt/usr/bin/qemu-arm-static
-	chmod 4755 /mnt/usr/bin/qemu-arm-static # allow sudo
-	$(eval CHROOT := chroot /mnt)
+	dd if=/tmp/base.tmp of=/mnt/pt bs=1M count=1
+	cp /mnt/etc/hosts /mnt/etc/_hosts
 
-  # create and enable temporary key
-	ssh-keygen -t ed25519 -b 256 -N "" -f $$HOME/.ssh/id_ed25519
-	mkdir /mnt/home/pi/.ssh
-	cat $$HOME/.ssh/id_ed25519.pub > /mnt/home/pi/.ssh/authorized_keys
-	chown -R 1000:1000 /mnt/home/pi/.ssh
+  # import into docker
+	tar -C /mnt -c . | docker import - raspberry-make-base-$(BASEHASH)
 
-  # start ssh server
-	$(CHROOT) dpkg-reconfigure openssh-server
-	mkdir /mnt/run/sshd
-	($(CHROOT) /usr/sbin/sshd -D &)
-	sleep 2
-
-  # save key in known_hosts
-	ssh -oStrictHostKeyChecking=no pi@127.0.0.2 exit
-
-  # run playbooks (use 127.0.0.2 to force ssh)
-	echo 'raspbian ansible_user=pi ansible_host=127.0.0.2 ansible_python_interpreter=/usr/bin/python3' > inv.ini
-	$(foreach d,$(shell ls */playbook.yml | xargs -n1 dirname),cd $(d) && ansible-playbook -i ../inv.ini playbook.yml$(NL))
-
-	PIDS=$$(ps | grep qemu-arm | grep -v ps | awk '{ print $$1 }'); kill $$PIDS; wait $$PIDS; exit 0
-	KEY=$$(cat $$HOME/.ssh/id_ed25519.pub) && sed -i "/$${KEY//\//\\/}/d" /mnt/home/pi/.ssh/authorized_keys
-	rmdir /mnt/run/sshd
-
-  # umount chroot
-	rm /mnt/usr/bin/qemu-arm-static
-	umount /mnt/etc/resolv.conf || exit 0 # in case it has already been unmounted
-	umount /mnt/dev/pts
-	umount /mnt/dev
-	umount /mnt/sys
-	umount /mnt/proc
+  # umount
 	umount /mnt/boot
+	umount /mnt
 	losetup -d /dev/loop1
+	losetup -d /dev/loop0
+	rm /tmp/base.tmp
+endif
+
+  # add qemu and ansible
+	docker run --rm --privileged multiarch/qemu-user-static:register --reset >/dev/null
+	@echo -e "FROM multiarch/alpine:armhf-v3.9\n\
+	FROM amd64/alpine:3.9 \n\
+	RUN apk add --no-cache ansible \n\
+	FROM raspberry-make-base-$(BASEHASH) \n\
+	COPY --from=0 /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static \n\
+	RUN chmod 4755 /usr/bin/qemu-arm-static \n\
+	COPY --from=1 / /ansible \n\
+	RUN echo 'rpi ansible_connection=local ansible_python_interpreter=/usr/bin/python3' > /ansible/inv.ini \n\
+	ENV ANSIBLE_FORCE_COLOR true \n\
+	WORKDIR /playbook \n\
+	" | docker build - -t raspberry-make-cur
+
+  # run playbooks
+	$(foreach D,$(shell ls */playbook.yml | xargs -n1 dirname),$(PLAYBOOK_RUN)$(NL))
+
+  # allocate final image, restore partition table, adjust partition
+	docker run --rm raspberry-make-cur cat /pt | tee /tmp/output.tmp >/dev/null
+	truncate -s $(SIZE) /tmp/output.tmp
+	printf "d;2;n;p;2;$(call ROOT_START_SECTORS,/tmp/output.tmp);;w;" | tr ";" "\n" | fdisk /tmp/output.tmp || exit 0
+	losetup /dev/loop0 /tmp/output.tmp -o $(call ROOT_START_BYTES,/tmp/output.tmp) --sizelimit $(call ROOT_LEN_BYTES,/tmp/output.tmp)
+	losetup /dev/loop1 /tmp/output.tmp -o $(call BOOT_START_BYTES,/tmp/output.tmp) --sizelimit $(call BOOT_LEN_BYTES,/tmp/output.tmp)
+
+  # recreate file systems
+  # https://github.com/RPi-Distro/pi-gen/blob/30a1528ae13f993291496ac8e73b5ac0a6f82585/export-image/prerun.sh#L58
+	mkfs.ext4 -L rootfs -O '^huge_file,^metadata_csum,^64bit' /dev/loop0
+	mkdosfs -n boot -F 32 /dev/loop1
+
+  # mount
+	mount /dev/loop0 /mnt
+	mkdir /mnt/boot
+	mount /dev/loop1 /mnt/boot
+
+  # cleanup
+	@echo -e "FROM raspberry-make-cur \n\
+	RUN rm -rf /playbook /ansible /usr/bin/qemu-arm-static /pt \n\
+	" | docker build - -t raspberry-make-cur
+
+  # export
+	@docker container rm raspberry-make-tmp >/dev/null 2>&1 || exit 0
+	docker create --name raspberry-make-tmp raspberry-make-cur /bin/exit >/dev/null
+	docker export raspberry-make-tmp | tar xf - -C /mnt/
+	docker container rm raspberry-make-tmp >/dev/null
+
+  # cleanup export
+	rm /mnt/.dockerenv
+	echo $(HNAME) > /mnt/etc/hostname
+	mv /mnt/etc/_hosts /mnt/etc/hosts
+	sed -i 's/^127\.0\.1\.1.\+$$/127.0.0.1       $(HNAME)/' /mnt/etc/hosts
+ifeq ($(RESOLVCONF_TYPE),static)
+	echo '$(RESOLVCONF_CONTENT)' > /mnt/etc/resolv.conf
+else
+	rm /mnt/etc/resolv.conf
+	ln -s $(RESOLVCONF_CONTENT) /mnt/etc/resolv.conf
+endif
+	ls -l /mnt/etc/resolv.conf
+
+	umount /mnt/boot
 	umount /mnt
 	losetup -d /dev/loop0
-
-	mv $(TIMG) $@
-
-clean:
-	$(call IN_DOCKER, clean-nodocker)
-
-clean-nodocker:
-	rm -rf /build/*
+	losetup -d /dev/loop1
+	mv /tmp/output.tmp /b/output.img
 
 self-update:
 	curl -O https://raw.githubusercontent.com/gswly/raspberry-make/master/Makefile

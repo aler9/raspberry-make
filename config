@@ -1,6 +1,18 @@
 
 # uncomment to override
 
-# IMAGE_BASE = https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
+# base image
+# BASE = https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
-# IMAGE_EXPAND = 2G
+# size of the output image
+# SIZE = 2G
+
+# hostname
+# HNAME = my-rpi
+
+# type of /etc/resolv.conf (static or link)
+# RESOLVCONF_TYPE = static
+
+# if RESOLVCONF_TYPE = static, content of /etc/resolv.conf
+# otherwise target of symbolic link to put in /etc/resolv.conf
+# RESOLVCONF_CONTENT = 8.8.8.8
