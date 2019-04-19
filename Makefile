@@ -4,7 +4,7 @@
 include config
 
 BASE ?= https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
-SIZE ?= 1G
+SIZE ?= 2G
 HNAME ?= my-rpi
 RESOLVCONF_TYPE ?= static
 RESOLVCONF_CONTENT ?= 8.8.8.8
