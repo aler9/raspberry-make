@@ -6,7 +6,7 @@ raspberry-make is a command-line tool that can be used to build deterministic an
 Features:
 * compatible with multiple Linux distros, as it depends only on docker
 * building happens in a isolated docker container
-* all build stages are cached and thus reprocessed only if needed
+* all build stages are cached and therefore reprocessed only if needed
 * allows to set an arbitrary image size
 
 raspberry-make is distributed in the form of a Makefile, and makes use of Ansible, a common tool to remotely tweak a system, that follows rules defined in YAML-formatted files.
