@@ -36,6 +36,7 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
 ## Other commands
 
  * Update raspberry-make to the latest version:
+
    ```
    make self-update
    ```
