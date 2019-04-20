@@ -143,7 +143,8 @@ endif
 	echo "$$ADDITIONAL_HOSTS" >> /mnt/etc/hosts
 
   # set /etc/mtab (normally done by systemd-tmpfiles-setup)
-	ln -s ../proc/self/mounts /mnt/etc/fstab
+	rm /mnt/etc/mtab
+	ln -s ../proc/self/mounts /mnt/etc/mtab
 
 	umount /mnt/boot
 	umount /mnt
