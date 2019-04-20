@@ -126,10 +126,12 @@ endif
 	docker create --name raspberry-make-tmp raspberry-make-cur /bin/exit >/dev/null
 	docker export raspberry-make-tmp | tar xf - -C /mnt/
 	docker container rm raspberry-make-tmp >/dev/null
-
-  # cleanup export
 	rm /mnt/.dockerenv
+
+  # set /etc/hostname
 	echo $(HNAME) > /mnt/etc/hostname
+
+  # set /etc/hosts
 	mv /mnt/etc/_hosts /mnt/etc/hosts
 	sed -i 's/^127\.0\.1\.1.\+$$/127.0.0.1       $(HNAME)/' /mnt/etc/hosts
 ifeq ($(RESOLVCONF_TYPE),static)
@@ -139,6 +141,9 @@ else
 	ln -s $(RESOLVCONF_CONTENT) /mnt/etc/resolv.conf
 endif
 	echo "$$ADDITIONAL_HOSTS" >> /mnt/etc/hosts
+
+  # set /etc/mtab (normally done by systemd-tmpfiles-setup)
+	ln -s ../proc/self/mounts /mnt/etc/fstab
 
 	umount /mnt/boot
 	umount /mnt

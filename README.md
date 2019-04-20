@@ -5,7 +5,7 @@ raspberry-make is a command-line tool that can be used to build deterministic an
 
 Features:
 * compatible with multiple Linux distros, as it depends only on docker
-* building happens in a isolated docker container
+* building happens in an isolated docker container
 * all build stages are cached and therefore reprocessed only if needed
 * allows to set an arbitrary image size
 
@@ -25,7 +25,7 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
 
 3. Edit `config` to suit your needs.
 
-4. Edit `00base/playbook.yml` to suit your needs. Configuration files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Folders are opened in alphabetical order, and rules are executed sequentially.
+4. Edit `00base/playbook.yml` and `01ssh/playbook.yml` to suit your needs. Configuration files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Folders are opened in alphabetical order, and rules are executed sequentially.
 
 5. Launch:
    ```

@@ -3,7 +3,7 @@
   gather_facts: yes
   tasks:
 
-  - name: set_timezone
+  - name: timezone
     become: yes
     copy:
       dest: /etc/timezone
