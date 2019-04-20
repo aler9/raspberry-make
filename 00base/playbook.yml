@@ -5,9 +5,8 @@
 
   - name: timezone
     become: yes
-    copy:
-      dest: /etc/timezone
-      content: Europe/Paris
+    timezone:
+      name: Europe/Paris
 
   - name: disable_disk_expansion
     become: yes
