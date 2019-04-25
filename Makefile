@@ -1,8 +1,8 @@
 # raspberry-make
 # https://github.com/gswly/raspberry-make
 
-# load config from external file
-include config
+# load config from external file (optional)
+-include config
 
 # config default values
 BASE ?= https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
