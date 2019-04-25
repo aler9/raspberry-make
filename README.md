@@ -1,7 +1,7 @@
 
 # raspberry-make
 
-raspberry-make is a command-line tool that can be used to build deterministic and ready-to-use OS images for the Raspberry PI, defined by a set of configuration files. It is intended for creating images with pre-defined configuration and software, that can be deployed to headless computers, without the need of following the setup procedure, manually installing software or tweaking configuration files. This approach leads to a decrease in deployment time, to a decrease in human-related errors, and allows to collect all the configuration files relative to a specific project in a single repository.
+raspberry-make is a command-line tool (Makefile) that can be used to build deterministic and ready-to-use OS images for the Raspberry Pi, defined by a set of configuration files. It is intended for creating images with pre-defined configuration and software, that can be deployed to headless computers, without the need of following the setup procedure, manually installing software or tweaking configuration files. This approach leads to a decrease in deployment time, to a decrease in human-related errors, and allows to collect all the configuration files relative to a specific project in a single repository.
 
 Features:
 * all build stages are cached and therefore reprocessed only if needed
@@ -17,15 +17,16 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
    * Docker
    * Makefile
 
-2. Create an empty folder and download needed files:
+2. Create an empty folder, download Makefile and example configuration:
    ```
    curl -L https://github.com/gswly/raspberry-make/tarball/master | tar zxvf - --strip-components=1
    rm README.md LICENSE
    ```
+   Please note that only the Makefile is mandatory and should not be changed, other files are examples and can be changed or deleted.
 
 3. Edit `config` to suit your needs.
 
-4. Edit `00base/playbook.yml` and `01ssh/playbook.yml` to suit your needs. Configuration files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Folders are opened in alphabetical order, and rules are executed sequentially.
+4. Edit `00base/playbook.yml`, `01apt/playbook.yml`, `02ssh/playbook.yml` to suit your needs. These files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Folders are opened in alphabetical order, and rules are executed sequentially.
 
 5. Launch:
    ```
@@ -33,13 +34,22 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
    ```
    the resulting image will be available in `build/output.img`.
 
-## Other commands
+## Update
 
- * Update raspberry-make to the latest version:
+Update raspberry-make to the latest version:
+```
+make self-update
+```
 
-   ```
-   make self-update
-   ```
+## Limitations
+
+Some files cannot be touched by playbooks since they are used by Docker; these are:
+* /etc/hosts
+* /etc/hostname
+* /etc/mtab
+* /etc/resolv.conf
+
+File `config` contains options to change these files safely.
 
 ## Links
 
