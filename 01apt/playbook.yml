@@ -1,0 +1,28 @@
+
+- hosts: all
+  gather_facts: no
+  tasks:
+
+  - name: apt_cleanup
+    become: yes
+    apt:
+      autoremove: yes
+      state: absent
+      name:
+      - '*-dev'
+      - avahi-daemon
+      - bash-completion
+      - bluez*
+      - build-essential
+      - cifs-utils
+      - gdb
+      - libpython2*
+      - libraspberrypi-doc
+      - man-db
+      - manpages
+      - dphys-swapfile
+      - python2*
+      - samba*
+      - triggerhappy
+      - vim*
+      - v4l-utils
