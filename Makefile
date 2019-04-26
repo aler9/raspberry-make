@@ -1,6 +1,8 @@
 # raspberry-make
 # https://github.com/gswly/raspberry-make
 
+MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+
 # load config from external file (optional)
 -include config
 
@@ -155,4 +157,4 @@ endif
 	mv /tmp/output.tmp /b/output.img
 
 self-update:
-	curl -O https://raw.githubusercontent.com/gswly/raspberry-make/master/Makefile
+	curl -o $(MAKEFILE_NAME) https://raw.githubusercontent.com/gswly/raspberry-make/master/Makefile
