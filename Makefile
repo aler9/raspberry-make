@@ -11,9 +11,6 @@ BUILD_DIR ?= $(PWD)/build
 BASE ?= https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 SIZE ?= 2G
 HNAME ?= my-rpi
-RESOLVCONF_TYPE ?= static
-RESOLVCONF_CONTENT ?= 8.8.8.8
-HOSTS_ADDITIONAL ?=
 PREUMOUNT_SCRIPT ?=
 POSTUMOUNT_SCRIPT ?=
 
@@ -68,13 +65,18 @@ ifeq ($(shell docker image inspect raspberry-make-base-$(BASEHASH) >/dev/null 2>
 	rm /tmp/base.tmp.zip
 	mv /tmp/*img /tmp/base.tmp
 
-  # mount root and boot, save partition table, save /etc/hosts
+  # mount root and boot
 	losetup /dev/loop0 /tmp/base.tmp -o $(call ROOT_START_BYTES,/tmp/base.tmp)
 	losetup /dev/loop1 /tmp/base.tmp -o $(call BOOT_START_BYTES,/tmp/base.tmp)
 	mount /dev/loop0 /mnt
 	mount /dev/loop1 /mnt/boot
+
+  # save partition table
 	dd if=/tmp/base.tmp of=/mnt/pt bs=1M count=1
+
+  # save files that cannot be edited inside docker
 	cp /mnt/etc/hosts /mnt/etc/_hosts
+	cp /mnt/etc/resolv.conf /mnt/etc/_resolv.conf
 
   # import into docker
 	tar -C /mnt -c . | docker import - raspberry-make-base-$(BASEHASH)
@@ -133,20 +135,13 @@ endif
 	docker container rm raspberry-make-tmp >/dev/null
 	rm /mnt/.dockerenv
 
-  # set /etc/hostname
-	echo $(HNAME) > /mnt/etc/hostname
+  # restore files that cannot be edited inside docker
+	rm -f /mnt/etc/hosts && mv /mnt/etc/_hosts /mnt/etc/hosts
+	rm -f /mnt/etc/resolv.conf && mv /mnt/etc/_resolv.conf /mnt/etc/resolv.conf
 
-  # set /etc/hosts
-	mv /mnt/etc/_hosts /mnt/etc/hosts
-	sed -i 's/^127\.0\.1\.1.\+$$/127.0.0.1       $(HNAME)/' /mnt/etc/hosts
-ifeq ($(RESOLVCONF_TYPE),static)
-	echo '$(RESOLVCONF_CONTENT)' > /mnt/etc/resolv.conf
-else
-	rm /mnt/etc/resolv.conf
-	ln -s $(RESOLVCONF_CONTENT) /mnt/etc/resolv.conf
-endif
-	$(eval export HOSTS_ADDITIONAL)
-	echo "$$HOSTS_ADDITIONAL" >> /mnt/etc/hosts
+  # set hostname
+	echo $(HNAME) > /mnt/etc/hostname
+	sed -i 's/^127\.0\.1\.1.\+$$/127.0.1.1       $(HNAME)/' /mnt/etc/hosts
 
   # set /etc/mtab (normally done by systemd-tmpfiles-setup)
 	rm /mnt/etc/mtab

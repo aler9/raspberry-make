@@ -10,19 +10,6 @@
 # hostname
 # HNAME = my-rpi
 
-# type of /etc/resolv.conf (static or link)
-# RESOLVCONF_TYPE = static
-
-# if RESOLVCONF_TYPE = static, content of /etc/resolv.conf
-# otherwise target of symbolic link to put in /etc/resolv.conf
-# RESOLVCONF_CONTENT = 8.8.8.8
-
-# additional content to add to /etc/hosts
-# define HOSTS_ADDITIONAL
-# 10.0.3.1 otherhosta
-# 10.0.3.2 otherhostb
-# endef
-
 # shell commands to be executed before unmounting the image
 # define PREUMOUNT_SCRIPT
 # echo ok
