@@ -10,12 +10,12 @@
 # hostname
 # HNAME = my-rpi
 
-# shell commands to be executed before unmounting the image
+# shell commands that will be executed before unmounting the image
 # define PREUMOUNT_SCRIPT
 # echo ok
 # endef
 
-# shell commands to be executed after unmounting the image
+# shell commands that will be executed after unmounting the image
 # define POSTUMOUNT_SCRIPT
 # echo ok
 # endef
