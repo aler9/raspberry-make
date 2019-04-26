@@ -7,14 +7,13 @@ MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 -include config
 
 # config default values
+BUILD_DIR ?= $(PWD)/build
 BASE ?= https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 SIZE ?= 2G
 HNAME ?= my-rpi
 RESOLVCONF_TYPE ?= static
 RESOLVCONF_CONTENT ?= 8.8.8.8
 HOSTS_ADDITIONAL ?=
-export HOSTS_ADDITIONAL
-BUILD_DIR ?= $(PWD)/build
 PREUMOUNT_SCRIPT ?=
 POSTUMOUNT_SCRIPT ?=
 
@@ -146,6 +145,7 @@ else
 	rm /mnt/etc/resolv.conf
 	ln -s $(RESOLVCONF_CONTENT) /mnt/etc/resolv.conf
 endif
+	$(eval export HOSTS_ADDITIONAL)
 	echo "$$HOSTS_ADDITIONAL" >> /mnt/etc/hosts
 
   # set /etc/mtab (normally done by systemd-tmpfiles-setup)
