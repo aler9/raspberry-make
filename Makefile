@@ -58,7 +58,7 @@ indocker:
 	@rm -rf /b/*
 
   # download and import only if necessary
-ifeq ($(shell docker image inspect raspberry-make-base-$(BASEHASH) >/dev/null 2>&1 || echo 1),1)
+ifeq ($(shell docker image inspect raspberry-make-base2-$(BASEHASH) >/dev/null 2>&1 || echo 1),1)
   # download
 	wget -O /tmp/base.tmp.zip $(BASE)
 	cd /tmp && unzip base.tmp.zip
@@ -77,9 +77,10 @@ ifeq ($(shell docker image inspect raspberry-make-base-$(BASEHASH) >/dev/null 2>
   # save files that cannot be edited inside docker
 	cp /mnt/etc/hosts /mnt/etc/_hosts
 	cp /mnt/etc/resolv.conf /mnt/etc/_resolv.conf
+	cp /mnt/etc/mtab /mnt/etc/_mtab
 
   # import into docker
-	tar -C /mnt -c . | docker import - raspberry-make-base-$(BASEHASH)
+	tar -C /mnt -c . | docker import - raspberry-make-base2-$(BASEHASH)
 
   # umount
 	umount /mnt/boot
@@ -94,7 +95,7 @@ endif
 	@echo -e "FROM multiarch/alpine:armhf-v3.9\n\
 	FROM amd64/alpine:3.9 \n\
 	RUN apk add --no-cache ansible \n\
-	FROM raspberry-make-base-$(BASEHASH) \n\
+	FROM raspberry-make-base2-$(BASEHASH) \n\
 	COPY --from=0 /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static \n\
 	RUN chmod 4755 /usr/bin/qemu-arm-static \n\
 	COPY --from=1 / /ansible \n\
@@ -138,14 +139,11 @@ endif
   # restore files that cannot be edited inside docker
 	rm -f /mnt/etc/hosts && mv /mnt/etc/_hosts /mnt/etc/hosts
 	rm -f /mnt/etc/resolv.conf && mv /mnt/etc/_resolv.conf /mnt/etc/resolv.conf
+	rm -f /mnt/etc/mtab && mv /mnt/etc/_mtab /mnt/etc/mtab
 
   # set hostname
 	echo $(HNAME) > /mnt/etc/hostname
 	sed -i 's/^127\.0\.1\.1.\+$$/127.0.1.1       $(HNAME)/' /mnt/etc/hosts
-
-  # set /etc/mtab (normally done by systemd-tmpfiles-setup)
-	rm /mnt/etc/mtab
-	ln -s ../proc/self/mounts /mnt/etc/mtab
 
 	$(PREUMOUNT_SCRIPT)
 
