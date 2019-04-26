@@ -18,7 +18,7 @@
 # RESOLVCONF_CONTENT = 8.8.8.8
 
 # additional content to add to /etc/hosts
-# define ADDITIONAL_HOSTS
+# define HOSTS_ADDITIONAL
 # 10.0.3.1 otherhosta
 # 10.0.3.2 otherhostb
 # endef

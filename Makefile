@@ -12,8 +12,8 @@ SIZE ?= 2G
 HNAME ?= my-rpi
 RESOLVCONF_TYPE ?= static
 RESOLVCONF_CONTENT ?= 8.8.8.8
-ADDITIONAL_HOSTS ?=
-export ADDITIONAL_HOSTS
+HOSTS_ADDITIONAL ?=
+export HOSTS_ADDITIONAL
 BUILD_DIR ?= $(PWD)/build
 
 blank :=
@@ -144,7 +144,7 @@ else
 	rm /mnt/etc/resolv.conf
 	ln -s $(RESOLVCONF_CONTENT) /mnt/etc/resolv.conf
 endif
-	echo "$$ADDITIONAL_HOSTS" >> /mnt/etc/hosts
+	echo "$$HOSTS_ADDITIONAL" >> /mnt/etc/hosts
 
   # set /etc/mtab (normally done by systemd-tmpfiles-setup)
 	rm /mnt/etc/mtab
