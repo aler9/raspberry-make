@@ -15,6 +15,8 @@ RESOLVCONF_CONTENT ?= 8.8.8.8
 HOSTS_ADDITIONAL ?=
 export HOSTS_ADDITIONAL
 BUILD_DIR ?= $(PWD)/build
+PREUMOUNT_SCRIPT ?=
+POSTUMOUNT_SCRIPT ?=
 
 blank :=
 define NL
@@ -150,10 +152,15 @@ endif
 	rm /mnt/etc/mtab
 	ln -s ../proc/self/mounts /mnt/etc/mtab
 
+	$(PREUMOUNT_SCRIPT)
+
 	umount /mnt/boot
 	umount /mnt
 	losetup -d /dev/loop0
 	losetup -d /dev/loop1
+
+	$(POSTUMOUNT_SCRIPT)
+
 	mv /tmp/output.tmp /b/output.img
 
 self-update:

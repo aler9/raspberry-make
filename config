@@ -22,3 +22,13 @@
 # 10.0.3.1 otherhosta
 # 10.0.3.2 otherhostb
 # endef
+
+# shell commands to be executed before unmounting the image
+# define PREUMOUNT_SCRIPT
+# echo ok
+# endef
+
+# shell commands to be executed after unmounting the image
+# define POSTUMOUNT_SCRIPT
+# echo ok
+# endef
