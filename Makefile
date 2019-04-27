@@ -45,7 +45,7 @@ endef
 all:
   # build container and enter
 	@echo "FROM amd64/alpine:3.9 \n\
-	RUN apk add --no-cache make docker e2fsprogs dosfstools rsync util-linux" \
+	RUN apk add --no-cache make docker e2fsprogs e2fsprogs-extra dosfstools rsync util-linux" \
 	| docker build - -t raspberry-make
 	sudo modprobe loop
 	sudo modprobe vfat
