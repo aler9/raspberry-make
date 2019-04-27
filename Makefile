@@ -51,7 +51,7 @@ all:
 	sudo modprobe vfat
 	docker run --rm --privileged \
 	-v $(PWD):/s:ro -v $(BUILD_DIR):/b -v /var/run/docker.sock:/var/run/docker.sock:ro \
-	raspberry-make sh -c "cd /s && make indocker"
+	raspberry-make sh -c "cd /s && make -f $(MAKEFILE_NAME) indocker"
 
 indocker:
 	@losetup -d /dev/loop0 2>/dev/null || exit 0
