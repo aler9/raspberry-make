@@ -111,7 +111,7 @@ endif
   # allocate final image, restore partition table, adjust partition
 	docker run --rm raspberry-make-cur cat /pt | tee /tmp/output.tmp >/dev/null
 	truncate -s $(SIZE) /tmp/output.tmp
-	printf "d;2;n;p;2;$(call ROOT_START_SECTORS,/tmp/output.tmp);;w;" | tr ";" "\n" | fdisk /tmp/output.tmp || exit 0
+	printf "d;2;n;p;;$(call ROOT_START_SECTORS,/tmp/output.tmp);;w;" | tr ";" "\n" | fdisk /tmp/output.tmp || exit 0
 	losetup /dev/loop0 /tmp/output.tmp -o $(call ROOT_START_BYTES,/tmp/output.tmp) --sizelimit $(call ROOT_LEN_BYTES,/tmp/output.tmp)
 	losetup /dev/loop1 /tmp/output.tmp -o $(call BOOT_START_BYTES,/tmp/output.tmp) --sizelimit $(call BOOT_LEN_BYTES,/tmp/output.tmp)
 
