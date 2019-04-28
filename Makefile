@@ -48,8 +48,8 @@ all:
 	@printf "FROM amd64/alpine:3.9 \n\
 	RUN apk add --no-cache make docker e2fsprogs e2fsprogs-extra dosfstools rsync util-linux\n\
 	" | docker build - -t raspberry-make
-	sudo modprobe loop
-	sudo modprobe vfat
+	$(if $(shell which sudo),sudo ,)modprobe loop
+	$(if $(shell which sudo),sudo ,)modprobe vfat
 	docker run --rm --privileged \
 	-v $(PWD):/s:ro -v $(BUILD_DIR):/b -v /var/run/docker.sock:/var/run/docker.sock:ro \
 	raspberry-make sh -c "cd /s && make -f $(MAKEFILE_NAME) indocker"
@@ -150,9 +150,9 @@ endif
 	$(PREUMOUNT_SCRIPT)
 
 	umount /mnt/boot
+	losetup -d /dev/loop1
 	umount /mnt
 	losetup -d /dev/loop0
-	losetup -d /dev/loop1
 
 	$(POSTUMOUNT_SCRIPT)
 
