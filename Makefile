@@ -50,8 +50,13 @@ all:
 	" | docker build - -t raspberry-make
 	$(if $(shell which sudo),sudo ,)modprobe loop
 	$(if $(shell which sudo),sudo ,)modprobe vfat
-	docker run --rm --privileged \
-	-v $(PWD):/s:ro -v $(BUILD_DIR):/b -v /var/run/docker.sock:/var/run/docker.sock:ro \
+	docker run --rm \
+	--cap-add SYS_ADMIN \
+	--device /dev/loop0 \
+	--device /dev/loop1 \
+	-v $(PWD):/s:ro \
+	-v $(BUILD_DIR):/b \
+	-v /var/run/docker.sock:/var/run/docker.sock:ro \
 	raspberry-make sh -c "cd /s && make -f $(MAKEFILE_NAME) indocker"
 
 indocker:
