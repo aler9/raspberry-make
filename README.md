@@ -24,7 +24,7 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
    rm README.md LICENSE
    ```
 
-3. Edit `config` to suit your needs, edit `00base/playbook.yml`, `01apt/playbook.yml`, `02ssh/playbook.yml` to suit your needs. These files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Folders are opened in alphabetical order, and rules are executed sequentially.
+3. Edit `config` to suit your needs, edit `00base/playbook.yml`, `01apt/playbook.yml`, `02ssh/playbook.yml` to suit your needs. These files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a file named `playbook.yml`. Folders are opened in alphabetical order, and rules are executed sequentially.
 
 5. Launch:
    ```
@@ -32,9 +32,9 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
    ```
    the resulting image will be available in `build/output.img`.
 
-## Update
+## Upgrade
 
-Update raspberry-make to the latest version:
+Upgrade raspberry-make to the latest version:
 ```
 make self-update
 ```
