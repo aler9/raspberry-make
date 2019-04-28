@@ -9,7 +9,7 @@ Features:
 * building happens in an isolated docker container
 * allows to set an arbitrary image size
 
-raspberry-make is distributed in the form of a Makefile, and makes use of Ansible, a common tool to configure a remote system, that follows rules defined in YAML-formatted files.
+raspberry-make is distributed in the form of a Makefile, and makes use of Ansible, a common tool for configuring remote machines, that follows rules defined in YAML-formatted files.
 
 ## Installation and usage
 
