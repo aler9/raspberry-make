@@ -164,4 +164,4 @@ endif
 	mv /tmp/output.tmp /b/output.img
 
 self-update:
-	curl -o $(MAKEFILE_NAME) https://raw.githubusercontent.com/gswly/raspberry-make/master/rpimake.Makefile
+	curl -o $(MAKEFILE_NAME) https://raw.githubusercontent.com/gswly/raspberry-make/master/rpimake.mk

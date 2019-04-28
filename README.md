@@ -28,7 +28,7 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
 
 5. Launch:
    ```
-   make -f rpimake.Makefile
+   make -f rpimake.mk
    ```
    the resulting image will be available in `build/output.img`.
 
