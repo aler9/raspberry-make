@@ -14,23 +14,21 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
 ## Installation and usage
 
 1. Install dependencies:
-   * Docker
-   * Makefile
+   * docker
+   * makefile
+   * curl
 
-2. Create an empty folder, download Makefile and example configuration:
+2. Download raspberry-make and sample configuration:
    ```
    curl -L https://github.com/gswly/raspberry-make/tarball/master | tar zxvf - --strip-components=1
    rm README.md LICENSE
    ```
-   Please note that only the Makefile is mandatory and should not be changed, other files are examples and can be changed or deleted.
 
-3. Edit `config` to suit your needs.
-
-4. Edit `00base/playbook.yml`, `01apt/playbook.yml`, `02ssh/playbook.yml` to suit your needs. These files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Folders are opened in alphabetical order, and rules are executed sequentially.
+3. Edit `config` to suit your needs, edit `00base/playbook.yml`, `01apt/playbook.yml`, `02ssh/playbook.yml` to suit your needs. These files are Ansible playbooks, whose format is documented [here](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). It is possible to create as many folders as needed, each with a `playbook.yml` file. Folders are opened in alphabetical order, and rules are executed sequentially.
 
 5. Launch:
    ```
-   make
+   make -f rpimake.Makefile
    ```
    the resulting image will be available in `build/output.img`.
 
@@ -43,7 +41,7 @@ make self-update
 
 ## Limitations
 
-Some files cannot be touched by playbooks since they are used by Docker; these are:
+Some files cannot be changed by playbooks since they are used by Docker; these are:
 * /etc/hosts
 * /etc/hostname
 * /etc/mtab
