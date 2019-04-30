@@ -52,6 +52,7 @@ all:
 	$(if $(shell which sudo),sudo ,)modprobe vfat
 	docker run --rm \
 	--cap-add SYS_ADMIN \
+	--security-opt apparmor:unconfined \
 	--device /dev/loop0 \
 	--device /dev/loop1 \
 	-v $(PWD):/s:ro \
