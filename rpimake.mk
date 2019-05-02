@@ -34,7 +34,7 @@ BOOT_LEN_BYTES = $$(($(BOOT_LEN_SECTORS)*512))
 define PLAYBOOK_RUN
 @echo -e "FROM raspberry-make-cur \n\
 COPY . ./ \n\
-RUN /ansible/lib/ld-musl-x86_64.so.1 --library-path=/ansible/lib:/ansible/usr/lib \
+RUN sudo -u pi ANSIBLE_FORCE_COLOR=true /ansible/lib/ld-musl-x86_64.so.1 --library-path=/ansible/lib:/ansible/usr/lib \
 	/ansible/usr/bin/python3.6 /ansible/usr/bin/ansible-playbook -i /ansible/inv.ini playbook.yml \n\
 RUN rm -rf ./* \n\
 " | docker build $(D) -f - -t raspberry-make-cur
@@ -101,10 +101,8 @@ endif
 	@echo -e "FROM multiarch/alpine:armhf-v3.9\n\
 	FROM raspberry-make-base-$(BASEHASH) \n\
 	COPY --from=0 /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static \n\
-	USER pi \n\
-	RUN test \$$(id -ru) -eq \$$(id -u) && test \$$(id -u) -eq 1000 \n\
-	RUN sudo sh -c 'test \$$(id -ru) -eq \$$(id -u) && test \$$(id -u) -eq 0' \n\
-	USER root \n\
+	RUN sudo -u pi sh -c 'test \$$(id -ru) -eq \$$(id -u) && test \$$(id -u) -eq 1000' \n\
+	RUN sudo -u pi sudo sh -c 'test \$$(id -ru) -eq \$$(id -u) && test \$$(id -u) -eq 0' \n\
 	" | docker build - -t raspberry-make-cur
 
   # add ansible, prepare for playbooks
@@ -115,8 +113,6 @@ endif
 	RUN echo 'rpi ansible_connection=local ansible_python_interpreter=/usr/bin/python3' > /ansible/inv.ini \n\
 	WORKDIR /playbook \n\
 	RUN chown pi:pi /playbook \n\
-	ENV ANSIBLE_FORCE_COLOR true \n\
-	USER pi \n\
 	" | docker build - -t raspberry-make-cur
 
   # run playbooks
@@ -127,7 +123,6 @@ endif
 
   # cleanup
 	@echo -e "FROM raspberry-make-cur \n\
-	USER root \n\
 	RUN rm -rf /playbook /ansible /pt /usr/bin/qemu-arm-static \n\
 	" | docker build - -t raspberry-make-cur
 
