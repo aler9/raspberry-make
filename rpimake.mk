@@ -34,10 +34,8 @@ BOOT_LEN_BYTES = $$(($(BOOT_LEN_SECTORS)*512))
 define PLAYBOOK_RUN
 @echo -e "FROM raspberry-make-cur \n\
 COPY . ./ \n\
-USER pi \n\
 RUN /ansible/lib/ld-musl-x86_64.so.1 --library-path=/ansible/lib:/ansible/usr/lib \
 	/ansible/usr/bin/python3.6 /ansible/usr/bin/ansible-playbook -i /ansible/inv.ini playbook.yml \n\
-USER root \n\
 RUN rm -rf ./* \n\
 " | docker build $(D) -f - -t raspberry-make-cur
 endef
@@ -66,7 +64,7 @@ indocker:
 	@rm -rf /b/*
 
   # download and import only if necessary
-ifeq ($(shell docker image inspect raspberry-make-base2-$(BASEHASH) >/dev/null 2>&1 || echo 1),1)
+ifeq ($(shell docker image inspect raspberry-make-base-$(BASEHASH) >/dev/null 2>&1 || echo 1),1)
   # download
 	wget -O /tmp/base.tmp.zip $(BASE)
 	cd /tmp && unzip base.tmp.zip
@@ -88,7 +86,7 @@ ifeq ($(shell docker image inspect raspberry-make-base2-$(BASEHASH) >/dev/null 2
 	cp /mnt/etc/mtab /mnt/etc/_mtab
 
   # import into docker
-	tar -C /mnt -c . | docker import - raspberry-make-base2-$(BASEHASH)
+	tar -C /mnt -c . | docker import - raspberry-make-base-$(BASEHASH)
 
   # umount
 	umount /mnt/boot
@@ -98,32 +96,47 @@ ifeq ($(shell docker image inspect raspberry-make-base2-$(BASEHASH) >/dev/null 2
 	rm /tmp/base.tmp
 endif
 
-  # add qemu and ansible
-	docker run --rm --privileged multiarch/qemu-user-static:register --reset >/dev/null
+  # add qemu, check that sudo works correctly. IMPORTANT: keep --credential yes
+	docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes >/dev/null
 	@echo -e "FROM multiarch/alpine:armhf-v3.9\n\
-	FROM amd64/alpine:3.9 \n\
-	RUN apk add --no-cache ansible \n\
-	FROM raspberry-make-base2-$(BASEHASH) \n\
+	FROM raspberry-make-base-$(BASEHASH) \n\
 	COPY --from=0 /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static \n\
-	RUN chmod 4755 /usr/bin/qemu-arm-static \n\
-	COPY --from=1 / /ansible \n\
+	USER pi \n\
+	RUN test \$$(id -ru) -eq \$$(id -u) && test \$$(id -u) -eq 1000 \n\
+	RUN sudo sh -c 'test \$$(id -ru) -eq \$$(id -u) && test \$$(id -u) -eq 0' \n\
+	USER root \n\
+	" | docker build - -t raspberry-make-cur
+
+  # add ansible, prepare for playbooks
+	@echo -e "FROM amd64/alpine:3.9 \n\
+	RUN apk add --no-cache ansible \n\
+	FROM raspberry-make-cur \n\
+	COPY --from=0 / /ansible \n\
 	RUN echo 'rpi ansible_connection=local ansible_python_interpreter=/usr/bin/python3' > /ansible/inv.ini \n\
-	ENV ANSIBLE_FORCE_COLOR true \n\
 	WORKDIR /playbook \n\
+	RUN chown pi:pi /playbook \n\
+	ENV ANSIBLE_FORCE_COLOR true \n\
+	USER pi \n\
 	" | docker build - -t raspberry-make-cur
 
   # run playbooks
 	$(foreach D,$(shell ls */playbook.yml | xargs -n1 dirname),$(PLAYBOOK_RUN)$(NL))
 
-  # allocate final image, restore partition table, adjust partition
+  # export partition table
 	docker run --rm raspberry-make-cur cat /pt | tee /tmp/output.tmp >/dev/null
+
+  # cleanup
+	@echo -e "FROM raspberry-make-cur \n\
+	USER root \n\
+	RUN rm -rf /playbook /ansible /pt /usr/bin/qemu-arm-static \n\
+	" | docker build - -t raspberry-make-cur
+
+  # allocate image, adjust root size, recreate file systems
+  # https://github.com/RPi-Distro/pi-gen/blob/30a1528ae13f993291496ac8e73b5ac0a6f82585/export-image/prerun.sh#L58
 	truncate -s $(SIZE) /tmp/output.tmp
 	printf "d;2;n;p;;$(call ROOT_START_SECTORS,/tmp/output.tmp);;w;" | tr ";" "\n" | fdisk /tmp/output.tmp || exit 0
 	losetup /dev/loop0 /tmp/output.tmp -o $(call ROOT_START_BYTES,/tmp/output.tmp) --sizelimit $(call ROOT_LEN_BYTES,/tmp/output.tmp)
 	losetup /dev/loop1 /tmp/output.tmp -o $(call BOOT_START_BYTES,/tmp/output.tmp) --sizelimit $(call BOOT_LEN_BYTES,/tmp/output.tmp)
-
-  # recreate file systems
-  # https://github.com/RPi-Distro/pi-gen/blob/30a1528ae13f993291496ac8e73b5ac0a6f82585/export-image/prerun.sh#L58
 	mkfs.ext4 -L rootfs -O '^huge_file,^metadata_csum,^64bit' /dev/loop0
 	mkdosfs -n boot -F 32 /dev/loop1
 
@@ -131,11 +144,6 @@ endif
 	mount /dev/loop0 /mnt
 	mkdir /mnt/boot
 	mount /dev/loop1 /mnt/boot
-
-  # cleanup
-	@echo -e "FROM raspberry-make-cur \n\
-	RUN rm -rf /playbook /ansible /usr/bin/qemu-arm-static /pt \n\
-	" | docker build - -t raspberry-make-cur
 
   # export
 	@docker container rm raspberry-make-tmp >/dev/null 2>&1 || exit 0
@@ -148,9 +156,6 @@ endif
 	rm -f /mnt/etc/hosts && mv /mnt/etc/_hosts /mnt/etc/hosts
 	rm -f /mnt/etc/resolv.conf && mv /mnt/etc/_resolv.conf /mnt/etc/resolv.conf
 	rm -f /mnt/etc/mtab && mv /mnt/etc/_mtab /mnt/etc/mtab
-
-  # remove ansible residuals
-	rm -rf /mnt/home/pi/.ansible
 
   # set hostname
 	echo $(HNAME) > /mnt/etc/hostname
