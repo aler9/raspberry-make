@@ -149,6 +149,9 @@ endif
 	rm -f /mnt/etc/resolv.conf && mv /mnt/etc/_resolv.conf /mnt/etc/resolv.conf
 	rm -f /mnt/etc/mtab && mv /mnt/etc/_mtab /mnt/etc/mtab
 
+  # remove ansible residuals
+	rm -rf /mnt/home/pi/.ansible
+
   # set hostname
 	echo $(HNAME) > /mnt/etc/hostname
 	sed -i 's/^127\.0\.1\.1.\+$$/127.0.1.1       $(HNAME)/' /mnt/etc/hosts
