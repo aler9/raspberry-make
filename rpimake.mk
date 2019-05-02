@@ -47,7 +47,8 @@ all:
   # we use printf since it is compatible with both alpine and debian
 	@printf "FROM amd64/alpine:3.9 \n\
 	RUN apk add --no-cache make docker e2fsprogs e2fsprogs-extra dosfstools rsync util-linux\n\
-	" | docker build - -t raspberry-make
+	COPY . /s/ \n\
+	" | docker build . -f - -t raspberry-make
 	$(if $(shell which sudo),sudo ,)modprobe loop
 	$(if $(shell which sudo),sudo ,)modprobe vfat
 	docker run --rm \
@@ -55,7 +56,6 @@ all:
 	--security-opt apparmor:unconfined \
 	--device /dev/loop0 \
 	--device /dev/loop1 \
-	-v $(PWD):/s:ro \
 	-v $(BUILD_DIR):/b \
 	-v /var/run/docker.sock:/var/run/docker.sock:ro \
 	raspberry-make sh -c "cd /s && make -f $(MAKEFILE_NAME) indocker"
