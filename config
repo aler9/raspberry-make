@@ -5,17 +5,7 @@
 # BASE = https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
 # size of the output image
-# SIZE = 2G
+# SIZE = 1G
 
-# hostname
+# hostname of the output image
 # HNAME = my-rpi
-
-# shell commands that will be executed before unmounting the image
-# define PREUMOUNT_SCRIPT
-# echo ok
-# endef
-
-# shell commands that will be executed after unmounting the image
-# define POSTUMOUNT_SCRIPT
-# echo ok
-# endef

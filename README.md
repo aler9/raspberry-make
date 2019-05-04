@@ -7,7 +7,7 @@ Features:
 * all build stages are cached and therefore reprocessed only if needed
 * compatible with multiple Linux distros, as it depends only on docker
 * building happens in an isolated docker container
-* allows to set an arbitrary image size
+* building does not require root privileges, nor any additional capability
 
 raspberry-make is distributed in the form of a Makefile, and makes use of Ansible, a common tool for configuring remote machines, that follows rules defined in YAML-formatted files.
 
