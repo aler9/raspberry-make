@@ -40,13 +40,18 @@ RUN rm -rf ./* \n\
 " | docker build $(D) -f - -t raspberry-make-cur
 endef
 
+define DOCKERFILE
+FROM amd64/alpine:3.9
+RUN apk add --no-cache make docker e2fsprogs e2fsprogs-extra dosfstools rsync util-linux
+ARG MKF
+RUN echo "$$MKF" > /Makefile
+COPY . /s/
+endef
+
 all:
   # build container and enter
-  # we use printf since it is compatible with both alpine and debian
-	@printf "FROM amd64/alpine:3.9 \n\
-	RUN apk add --no-cache make docker e2fsprogs e2fsprogs-extra dosfstools rsync util-linux\n\
-	COPY . /s/ \n\
-	" | docker build . -f - -t raspberry-make
+	$(eval export DOCKERFILE)
+	echo "$$DOCKERFILE" | docker build . -f - --build-arg MKF="$$(cat $(MAKEFILE_NAME))" -t raspberry-make
 	$(if $(shell which sudo),sudo ,)modprobe loop
 	$(if $(shell which sudo),sudo ,)modprobe vfat
 	docker run --rm \
@@ -56,7 +61,7 @@ all:
 	--device /dev/loop1 \
 	-v $(BUILD_DIR):/b \
 	-v /var/run/docker.sock:/var/run/docker.sock:ro \
-	raspberry-make sh -c "cd /s && make -f $(MAKEFILE_NAME) indocker"
+	raspberry-make sh -c "cd /s && make -f /Makefile indocker"
 
 indocker:
 	@losetup -d /dev/loop0 2>/dev/null || exit 0
