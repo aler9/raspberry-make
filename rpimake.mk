@@ -30,10 +30,11 @@ define DOCKERFILE_BUILD
 FROM amd64/alpine:3.9 AS base
 
 RUN apk add --no-cache \
-    e2fsprogs \
+	e2fsprogs \
 	e2fsprogs-extra \
 	mtools \
-	util-linux
+	util-linux \
+	&& rm -rf /var/cache/apk/*
 
 # download base image, extract root, extract boot
 RUN wget -O base.tmp.zip $(BASE) \
@@ -60,7 +61,9 @@ RUN cp /rpi/etc/hosts /rpi/etc/_hosts \
 ######################################
 FROM amd64/alpine:3.9 AS ansible
 
-RUN apk add --no-cache ansible
+RUN apk add --no-cache \
+	ansible \
+	&& rm -rf /var/cache/apk/*
 
 ######################################
 FROM multiarch/alpine:armhf-v3.9 AS qemu
@@ -96,7 +99,8 @@ RUN apk add --no-cache \
 	gcc \
 	musl-dev \
 	pkgconfig \
-	confuse-dev
+	confuse-dev \
+	&& rm -rf /var/cache/apk/*
 
 RUN git clone -b v10 https://github.com/pengutronix/genimage \
 	&& cd /genimage \
@@ -111,7 +115,8 @@ FROM amd64/alpine:3.9 AS finalize
 RUN apk add --no-cache \
 	confuse \
 	e2fsprogs \
-	mtools
+	mtools \
+	&& rm -rf /var/cache/apk/*
 
 COPY --from=genimage /usr/local/bin/genimage /usr/local/bin/
 COPY --from=run_playbooks / /rpi
