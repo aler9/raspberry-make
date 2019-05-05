@@ -75,7 +75,7 @@ find /genimage_cfg -type f | sort | xargs -n1 sh -c 'genimage \
 --rootpath /genimage_root_$$(basename $$0) \
 --inputpath /genimage_out \
 --outputpath /genimage_out'
-mv /genimage_out/output.img /
+mv /genimage_out/output.img /o/
 endef
 export GENIMAGE
 
@@ -204,7 +204,7 @@ RUN echo "$$GENIMAGE_MAIN" > /genimage_cfg/2main
 ARG GENIMAGE
 RUN echo "$$GENIMAGE" > /genimage.sh && chmod +x /genimage.sh
 
-ENTRYPOINT [ "sh", "-c", "/genimage.sh && mv /output.img /o/" ]
+ENTRYPOINT [ "sh", "-c", "/genimage.sh" ]
 endef
 export DOCKERFILE
 
