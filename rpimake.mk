@@ -173,7 +173,7 @@ image output.img {\\n\\
 	}\\n\\
 }' > /genimage_cfg/main.cfg
 
-RUN echo $$'#!/bin/sh \\n\\
+RUN printf '#!/bin/sh \\n\\
 mv /rpi/boot /rpi_boot \
 	&& genimage --config /genimage_cfg/boot.cfg \
 	--rootpath /rpi_boot \
