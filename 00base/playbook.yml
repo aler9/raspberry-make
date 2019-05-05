@@ -18,3 +18,10 @@
   - name: disable_disk_resize
     become: yes
     shell: update-rc.d resize2fs_once remove && rm /etc/init.d/resize2fs_once
+
+  - name: remove_quiet_flag
+    become: yes
+    replace:
+      path: /boot/cmdline.txt
+      regexp: 'quiet ?'
+      replace: ''
