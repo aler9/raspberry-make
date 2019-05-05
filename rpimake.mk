@@ -197,5 +197,6 @@ export: build
 	docker run --rm -v $(BUILD_DIR):/o raspberry-make-build \
 	sh -c "/genimage.sh && mv /output.img /o/"
 
+MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 self-update:
 	curl -o $(MAKEFILE_NAME) https://raw.githubusercontent.com/gswly/raspberry-make/master/rpimake.mk
