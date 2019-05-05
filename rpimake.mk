@@ -146,7 +146,7 @@ RUN echo $$'\\n\\
 image root.img {\\n\\
 	ext4 {\\n\\
 		use-mke2fs = true\\n\\
-		extraargs = "-O ^huge_file -O ^metadata_csum -O ^64bit"\\n\\
+		extraargs = "-L rootfs -O ^huge_file -O ^metadata_csum -O ^64bit"\\n\\
 	}\\n\\
 	size = $(SIZE)\\n\\
 }' > /genimage_root.cfg
