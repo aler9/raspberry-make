@@ -39,7 +39,7 @@ image boot.img {\n\
 	size = 48M\n\
 }\n\
 ' > genimage.cfg
-genimage --rootpath /rpi/boot/ --inputpath / --outputpath /
+genimage --rootpath /rpi/boot --inputpath / --outputpath /
 
 # root
 printf '\n\
@@ -52,7 +52,7 @@ image root.img {\n\
 }\n\
 ' > genimage.cfg
 rm -rf /rpi/boot/*
-genimage --rootpath /rpi/boot/ --inputpath / --outputpath /
+genimage --rootpath /rpi --inputpath / --outputpath /
 
 # main
 printf '\n\
