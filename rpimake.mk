@@ -66,7 +66,8 @@ export GENIMAGE_MAIN
 define GENIMAGE
 #!/bin/sh
 set -e
-mv /rpi/boot /genimage_root_1boot
+mkdir /genimage_root_1boot
+mv /rpi/boot/* /genimage_root_1boot/
 mv /rpi /genimage_root_1root
 mkdir /genimage_root_2main
 find /genimage_cfg -type f | sort | xargs -n1 sh -c 'genimage \
