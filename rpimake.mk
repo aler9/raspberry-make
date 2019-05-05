@@ -189,6 +189,8 @@ mv /rpi/boot /rpi_boot \
 	&& mv /genimage_out/output.img / \
 	&& rm -rf /genimage_out \\n\\
 ' > /genimage.sh && chmod +x /genimage.sh
+
+ENTRYPOINT [ "sh", "-c", "/genimage.sh && mv /output.img /o/" ]
 endef
 
 .PHONY: all build export self-update
@@ -209,8 +211,7 @@ build:
 	-t raspberry-make-build
 
 export: build
-	docker run --rm -v $(BUILD_DIR):/o raspberry-make-build \
-	sh -c "/genimage.sh && mv /output.img /o/"
+	docker run --rm -v $(BUILD_DIR):/o raspberry-make-build
 
 MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 self-update:
