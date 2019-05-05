@@ -76,7 +76,6 @@ find /genimage_cfg -type f | sort | xargs -n1 sh -c 'genimage \
 --inputpath /genimage_out \
 --outputpath /genimage_out'
 mv /genimage_out/output.img /
-rm -rf /genimage_out
 endef
 export GENIMAGE
 
