@@ -133,10 +133,13 @@ RUN rm /rpi/etc/hosts && mv /rpi/etc/_hosts /rpi/etc/hosts \
 RUN echo $(HNAME) > /rpi/etc/hostname \
 	&& sed -i 's/^127\.0\.1\.1.\+$$/127.0.1.1       $(HNAME)/' /rpi/etc/hosts
 
-# replace uuids with device name
+# replace uuids with device name, since we will rebuild the file systems
 RUN sed -i 's/root=[^ ]\+/root=\/dev\/mmcblk0p2/' /rpi/boot/cmdline.txt \
 	&& sed -i 's/^.\+\?\/boot /\/dev\/mmcblk0p1 \/boot /' /rpi/etc/fstab \
 	&& sed -i 's/^.\+\?\/ /\/dev\/mmcblk0p2 \/ /' /rpi/etc/fstab
+
+RUN mkdir /genimage_cfg \
+	&& mkdir /genimage_out
 
 # https://github.com/RPi-Distro/pi-gen/blob/30a1528ae13f993291496ac8e73b5ac0a6f82585/export-image/prerun.sh#L58
 RUN echo $$'\\n\\
@@ -145,7 +148,7 @@ image boot.img {\\n\\
 		extraargs = "-n boot -F 32"\\n\\
 	}\\n\\
 	size = 48M\\n\\
-}' > /genimage_boot.cfg
+}' > /genimage_cfg/boot.cfg
 
 RUN echo $$'\\n\\
 image root.img {\\n\\
@@ -154,7 +157,7 @@ image root.img {\\n\\
 		extraargs = "-L rootfs -O ^huge_file -O ^metadata_csum -O ^64bit"\\n\\
 	}\\n\\
 	size = $(SIZE)\\n\\
-}' > /genimage_root.cfg
+}' > /genimage_cfg/root.cfg
 
 RUN echo $$'\\n\\
 image output.img {\\n\\
@@ -168,21 +171,22 @@ image output.img {\\n\\
 		partition-type = 0x83\\n\\
 		image = root.img\\n\\
 	}\\n\\
-}' > /genimage_main.cfg
+}' > /genimage_cfg/main.cfg
 
 RUN echo $$'#!/bin/sh \\n\\
 mv /rpi/boot /rpi_boot \
-	&& genimage --config genimage_boot.cfg \
+	&& genimage --config /genimage_cfg/boot.cfg \
 	--rootpath /rpi_boot \
-	--inputpath / \
-	--outputpath /genimage_out \
-	&& genimage --config genimage_root.cfg \
-	--rootpath /rpi \
-	--inputpath / \
-	--outputpath /genimage_out \
-	&& genimage --config genimage_main.cfg \
 	--inputpath /genimage_out \
-	--outputpath / \
+	--outputpath /genimage_out \
+	&& genimage --config /genimage_cfg/root.cfg \
+	--rootpath /rpi \
+	--inputpath /genimage_out \
+	--outputpath /genimage_out \
+	&& genimage --config /genimage_cfg/main.cfg \
+	--inputpath /genimage_out \
+	--outputpath /genimage_out \
+	&& mv /genimage_out/output.img / \
 	&& rm -rf /genimage_out \\n\\
 ' > /genimage.sh && chmod +x /genimage.sh
 endef
