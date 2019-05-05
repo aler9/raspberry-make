@@ -25,7 +25,61 @@ RUN sudo -u pi ANSIBLE_FORCE_COLOR=true /ansible/lib/ld-musl-x86_64.so.1 \
 RUN rm -rf ./*
 endef
 
-define DOCKERFILE_BUILD
+# https://github.com/RPi-Distro/pi-gen/blob/30a1528ae13f993291496ac8e73b5ac0a6f82585/export-image/prerun.sh#L58
+define GENIMAGE_BOOT
+image boot.img {
+	vfat {
+		extraargs = "-n boot -F 32"
+	}
+	size = 48M
+}
+endef
+export GENIMAGE_BOOT
+
+define GENIMAGE_ROOT
+image root.img {
+	ext4 {
+		use-mke2fs = true
+		extraargs = "-L rootfs -O ^huge_file -O ^metadata_csum -O ^64bit"
+	}
+	size = $(SIZE)
+}
+endef
+export GENIMAGE_ROOT
+
+define GENIMAGE_MAIN
+image output.img {
+	hdimage {
+	}
+	partition boot {
+		partition-type = 0xC
+		image = boot.img
+	}
+	partition root {
+		partition-type = 0x83
+		image = root.img
+	}
+}
+endef
+export GENIMAGE_MAIN
+
+define GENIMAGE
+#!/bin/sh
+set -e
+mv /rpi/boot /genimage_root_1boot
+mv /rpi /genimage_root_1root
+mkdir /genimage_root_2main
+find /genimage_cfg -type f | sort | xargs -n1 sh -c 'genimage \
+--config $$0 \
+--rootpath /genimage_root_$$(basename $$0) \
+--inputpath /genimage_out \
+--outputpath /genimage_out'
+mv /genimage_out/output.img /
+rm -rf /genimage_out
+endef
+export GENIMAGE
+
+define DOCKERFILE
 ######################################
 FROM amd64/alpine:3.9 AS base
 
@@ -141,57 +195,18 @@ RUN sed -i 's/root=[^ ]\+/root=\/dev\/mmcblk0p2/' /rpi/boot/cmdline.txt \
 RUN mkdir /genimage_cfg \
 	&& mkdir /genimage_out
 
-# https://github.com/RPi-Distro/pi-gen/blob/30a1528ae13f993291496ac8e73b5ac0a6f82585/export-image/prerun.sh#L58
-RUN echo $$'\\n\\
-image boot.img {\\n\\
-	vfat {\\n\\
-		extraargs = "-n boot -F 32"\\n\\
-	}\\n\\
-	size = 48M\\n\\
-}' > /genimage_cfg/boot.cfg
-
-RUN echo $$'\\n\\
-image root.img {\\n\\
-	ext4 {\\n\\
-		use-mke2fs = true\\n\\
-		extraargs = "-L rootfs -O ^huge_file -O ^metadata_csum -O ^64bit"\\n\\
-	}\\n\\
-	size = $(SIZE)\\n\\
-}' > /genimage_cfg/root.cfg
-
-RUN echo $$'\\n\\
-image output.img {\\n\\
-	hdimage {\\n\\
-	}\\n\\
-	partition boot {\\n\\
-		partition-type = 0xC\\n\\
-		image = boot.img\\n\\
-	}\\n\\
-	partition root {\\n\\
-		partition-type = 0x83\\n\\
-		image = root.img\\n\\
-	}\\n\\
-}' > /genimage_cfg/main.cfg
-
-RUN printf '#!/bin/sh \\n\\
-mv /rpi/boot /rpi_boot \
-	&& genimage --config /genimage_cfg/boot.cfg \
-	--rootpath /rpi_boot \
-	--inputpath /genimage_out \
-	--outputpath /genimage_out \
-	&& genimage --config /genimage_cfg/root.cfg \
-	--rootpath /rpi \
-	--inputpath /genimage_out \
-	--outputpath /genimage_out \
-	&& genimage --config /genimage_cfg/main.cfg \
-	--inputpath /genimage_out \
-	--outputpath /genimage_out \
-	&& mv /genimage_out/output.img / \
-	&& rm -rf /genimage_out \\n\\
-' > /genimage.sh && chmod +x /genimage.sh
+ARG GENIMAGE_BOOT
+RUN echo "$$GENIMAGE_BOOT" > /genimage_cfg/1boot
+ARG GENIMAGE_ROOT
+RUN echo "$$GENIMAGE_ROOT" > /genimage_cfg/1root
+ARG GENIMAGE_MAIN
+RUN echo "$$GENIMAGE_MAIN" > /genimage_cfg/2main
+ARG GENIMAGE
+RUN echo "$$GENIMAGE" > /genimage.sh && chmod +x /genimage.sh
 
 ENTRYPOINT [ "sh", "-c", "/genimage.sh && mv /output.img /o/" ]
 endef
+export DOCKERFILE
 
 .PHONY: all build export self-update
 
@@ -206,8 +221,11 @@ build:
 	@test $$(docker version --format '{{.Server.Version}}' | sed 's/^\(.\+\)\.\(.\+\)\.\(.\+\)$$/\2/') -ge 9 \
 		|| { echo "docker version must be >= 18.09"; exit 1; }
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes >/dev/null
-	$(eval export DOCKERFILE_BUILD)
-	echo "$$DOCKERFILE_BUILD" | DOCKER_BUILDKIT=1 docker build . -f - \
+	echo "$$DOCKERFILE" | DOCKER_BUILDKIT=1 docker build . -f - \
+	--build-arg GENIMAGE_BOOT="$$GENIMAGE_BOOT" \
+	--build-arg GENIMAGE_ROOT="$$GENIMAGE_ROOT" \
+	--build-arg GENIMAGE_MAIN="$$GENIMAGE_MAIN" \
+	--build-arg GENIMAGE="$$GENIMAGE" \
 	-t raspberry-make-build
 
 export: build
