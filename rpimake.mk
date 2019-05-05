@@ -186,8 +186,14 @@ endef
 
 all: export
 
+# for building we must use docker >= 18.09 and DOCKER_BUILDKIT
+# otherwise file owners are erased during COPY
 build:
-  # we must use DOCKER_BUILDKIT otherwise file owners are erased during COPY
+	$(if $(shell which docker),,$(error "docker not found"))
+	@test $$(docker version --format '{{.Server.Version}}' | sed 's/^\(.\+\)\.\(.\+\)\.\(.\+\)$$/\1/') -ge 18 \
+		|| { echo "docker version must be >= 18.09"; exit 1; }
+	@test $$(docker version --format '{{.Server.Version}}' | sed 's/^\(.\+\)\.\(.\+\)\.\(.\+\)$$/\2/') -ge 9 \
+		|| { echo "docker version must be >= 18.09"; exit 1; }
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes >/dev/null
 	$(eval export DOCKERFILE_BUILD)
 	echo "$$DOCKERFILE_BUILD" | DOCKER_BUILDKIT=1 docker build . -f - \
