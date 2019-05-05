@@ -190,7 +190,7 @@ build:
   # we must use DOCKER_BUILDKIT otherwise file owners are erased during COPY
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes >/dev/null
 	$(eval export DOCKERFILE_BUILD)
-	echo "$$DOCKERFILE_BUILD" | DOCKER_BUILDKIT=1 docker build --progress=plain . -f - \
+	echo "$$DOCKERFILE_BUILD" | DOCKER_BUILDKIT=1 docker build . -f - \
 	-t raspberry-make-build
 
 export: build
