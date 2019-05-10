@@ -208,7 +208,7 @@ build:
 	@test $$(docker version --format '{{.Server.Version}}' | sed 's/^\(.\+\)\.\(.\+\)\.\(.\+\)$$/\2/') -ge 9 \
 		|| { echo "docker version must be >= 18.09"; exit 1; }
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes >/dev/null
-	echo "$$DOCKERFILE" | DOCKER_BUILDKIT=1 docker build . -f - \
+	@echo "$$DOCKERFILE" | DOCKER_BUILDKIT=1 docker build . -f - \
 	--build-arg GENIMAGE="$$GENIMAGE" \
 	-t raspberry-make-build
 
