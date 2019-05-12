@@ -54,9 +54,13 @@ File `config` contains options to change these files safely.
 main image builder
 * https://github.com/RPi-Distro/pi-gen
 
-similar software
+other Raspbian-based provisioning systems
 * https://github.com/davidferguson/pibakery
 * https://github.com/Scout24/rpi-image-creator
+
+other non Raspbian-based provisioning systems
+* https://buildroot.uclibc.org/
+* https://www.yoctoproject.org/
 
 inspired by
 * https://github.com/plerup/makeEspArduino
