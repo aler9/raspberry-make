@@ -191,7 +191,7 @@ RUN sed -i 's/root=[^ ]\+/root=\/dev\/mmcblk0p2/' /rpi/boot/cmdline.txt \
 ARG GENIMAGE
 RUN echo "$$GENIMAGE" > /genimage.sh && chmod +x /genimage.sh
 
-ENTRYPOINT [ "sh", "-c", "/genimage.sh" ]
+ENTRYPOINT [ "/genimage.sh" ]
 endef
 export DOCKERFILE
 
