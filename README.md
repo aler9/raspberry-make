@@ -14,8 +14,8 @@ raspberry-make is distributed in the form of a Makefile, and makes use of Ansibl
 ## Installation and usage
 
 1. Install dependencies:
-   * docker
-   * makefile
+   * docker (>= 18.09)
+   * make
    * curl
 
 2. Download raspberry-make and sample configuration:
