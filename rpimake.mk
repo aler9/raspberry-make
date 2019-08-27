@@ -210,10 +210,11 @@ all: export
 # otherwise file owners are erased during COPY
 build:
 	$(if $(shell which docker),,$(error "docker not found"))
-	@test $$(docker version --format '{{.Server.Version}}' | sed 's/^\(.\+\)\.\(.\+\)\.\(.\+\)$$/\1/') -ge 18 \
+	@test $$(docker version --format '{{.Server.Version}}' | cut -d . -f1) -ge 18 \
 		|| { echo "docker version must be >= 18.09"; exit 1; }
-	@test $$(docker version --format '{{.Server.Version}}' | sed 's/^\(.\+\)\.\(.\+\)\.\(.\+\)$$/\2/') -ge 9 \
+	@test $$(docker version --format '{{.Server.Version}}' | cut -d . -f2) -ge 9 \
 		|| { echo "docker version must be >= 18.09"; exit 1; }
+
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes >/dev/null
 	@echo "$$DOCKERFILE" | DOCKER_BUILDKIT=1 docker build . -f - \
 		--build-arg GENIMAGE_BOOT="$$GENIMAGE_BOOT" \
@@ -225,5 +226,6 @@ export: build
 	docker run --rm -v $(BUILD_DIR):/o raspberry-make-build
 
 MAKEFILE_NAME := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+
 self-update:
 	curl -o $(MAKEFILE_NAME) https://raw.githubusercontent.com/gswly/raspberry-make/master/rpimake.mk
