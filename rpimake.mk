@@ -206,21 +206,25 @@ export DOCKERFILE
 
 all: export
 
-# for building we must use docker >= 18.09 and DOCKER_BUILDKIT
-# otherwise file owners are erased during COPY
-build:
-	$(if $(shell which docker),,$(error "docker not found"))
-	@test $$(docker version --format '{{.Server.Version}}' | cut -d . -f1) -ge 18 \
-		|| { echo "docker version must be >= 18.09"; exit 1; }
-	@test $$(docker version --format '{{.Server.Version}}' | cut -d . -f2) -ge 9 \
-		|| { echo "docker version must be >= 18.09"; exit 1; }
+# check for docker
+ifeq ($(shell which docker),)
+$(error "docker not found")
+endif
 
+# we must use docker >= 18.09 and DOCKER_BUILDKIT
+# otherwise file owners are erased during COPY
+DOCKER_REQVER = 18.09
+ifneq ($(shell printf "$$(docker version --format '{{.Server.Version}}')\\n$(DOCKER_REQVER)" | sort -V | head -n1),$(DOCKER_REQVER))
+$(error "docker version must be >= $(DOCKER_REQVER)")
+endif
+
+build:
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset --credential yes >/dev/null
 	@echo "$$DOCKERFILE" | DOCKER_BUILDKIT=1 docker build . -f - \
-		--build-arg GENIMAGE_BOOT="$$GENIMAGE_BOOT" \
-		--build-arg GENIMAGE_ROOT="$$GENIMAGE_ROOT" \
-		--build-arg GENIMAGE_MAIN="$$GENIMAGE_MAIN" \
-		-t raspberry-make-build
+	--build-arg GENIMAGE_BOOT="$$GENIMAGE_BOOT" \
+	--build-arg GENIMAGE_ROOT="$$GENIMAGE_ROOT" \
+	--build-arg GENIMAGE_MAIN="$$GENIMAGE_MAIN" \
+	-t raspberry-make-build
 
 export: build
 	docker run --rm -v $(BUILD_DIR):/o raspberry-make-build
