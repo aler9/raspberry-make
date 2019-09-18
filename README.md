@@ -1,7 +1,7 @@
 
 # raspberry-make
 
-raspberry-make is a command-line tool (Makefile) that can be used to build deterministic and ready-to-use OS images for the Raspberry Pi, defined by a set of configuration files. It is intended for creating images with pre-defined configuration and software, that can be deployed to headless computers, without the need for setup procedures or manual installations. This approach leads to a decrease in deployment time, to a decrease in human-related errors, and allows to collect all the configuration files relative to a specific project in a single repository.
+raspberry-make is a command-line tool (Makefile) that can be used to build deterministic and ready-to-use OS images for the Raspberry Pi, defined by a set of configuration files. It is intended for creating images with pre-defined configuration and software, that can be deployed to headless computers, without the need for setup procedures or manual installations. This approach leads to a decrease in deployment time, to a decrease in human-related errors, and allows to collect all the configuration files related to a specific machine in a single repository.
 
 Features:
 * all build stages are cached and therefore reprocessed only if needed
