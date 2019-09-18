@@ -9,7 +9,7 @@ Features:
 * building happens in an isolated docker container
 * building does not require root privileges, nor any additional capability
 
-raspberry-make is distributed in the form of a Makefile, and makes use of Ansible, a common tool for configuring remote machines, that follows rules defined in YAML-formatted files.
+raspberry-make is implemented in the form of a Makefile, and makes use of Ansible, a common tool for configuring remote machines, that follows rules defined in YAML-formatted files.
 
 ## Installation and usage
 
