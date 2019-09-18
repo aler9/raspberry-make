@@ -68,13 +68,13 @@ define DOCKERFILE_PLAYBOOK
 COPY $(D) ./
 RUN sudo -u pi ANSIBLE_FORCE_COLOR=true /ansible/lib/ld-musl-x86_64.so.1 \
 	--library-path=/ansible/lib:/ansible/usr/lib \
-	/ansible/usr/bin/python3.6 /ansible/usr/bin/ansible-playbook -i /ansible/inv.ini playbook.yml
+	/ansible/usr/bin/python3.7 /ansible/usr/bin/ansible-playbook -i /ansible/inv.ini playbook.yml
 RUN rm -rf ./*
 endef
 
 define DOCKERFILE
 ######################################
-FROM amd64/alpine:3.9 AS base
+FROM amd64/alpine:3.10 AS base
 
 RUN apk add --no-cache \
 	e2fsprogs \
@@ -106,14 +106,14 @@ RUN cp /rpi/etc/hosts /rpi/etc/_hosts \
 	&& cp /rpi/etc/mtab /rpi/etc/_mtab
 
 ######################################
-FROM amd64/alpine:3.9 AS ansible
+FROM amd64/alpine:3.10 AS ansible
 
 RUN apk add --no-cache \
 	ansible \
 	&& rm -rf /var/cache/apk/*
 
 ######################################
-FROM multiarch/alpine:armhf-v3.9 AS qemu
+FROM multiarch/alpine:armhf-v3.10 AS qemu
 
 ######################################
 FROM scratch AS run_playbooks
@@ -136,7 +136,7 @@ RUN chown pi:pi /playbook
 $(foreach D,$(shell ls */playbook.yml | xargs -n1 dirname),$(DOCKERFILE_PLAYBOOK)$(NL))
 
 ######################################
-FROM amd64/alpine:3.9 AS genimage
+FROM amd64/alpine:3.10 AS genimage
 
 RUN apk add --no-cache \
 	git \
@@ -157,7 +157,7 @@ RUN git clone -b v10 https://github.com/pengutronix/genimage \
 	&& make install
 
 ######################################
-FROM amd64/alpine:3.9 AS finalize
+FROM amd64/alpine:3.10 AS finalize
 
 RUN apk add --no-cache \
 	confuse \
