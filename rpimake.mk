@@ -82,8 +82,7 @@ RUN apk add --no-cache \
 	e2fsprogs \
 	e2fsprogs-extra \
 	mtools \
-	util-linux \
-	&& rm -rf /var/cache/apk/*
+	util-linux
 
 # download base image, extract root, extract boot
 RUN wget -O base.tmp.zip $(BASE) \
@@ -111,8 +110,7 @@ RUN cp /rpi/etc/hosts /rpi/etc/_hosts \
 FROM amd64/alpine:3.10 AS ansible
 
 RUN apk add --no-cache \
-	ansible \
-	&& rm -rf /var/cache/apk/*
+	ansible
 
 ######################################
 FROM multiarch/alpine:armhf-v3.10 AS qemu
@@ -148,8 +146,7 @@ RUN apk add --no-cache \
 	gcc \
 	musl-dev \
 	pkgconfig \
-	confuse-dev \
-	&& rm -rf /var/cache/apk/*
+	confuse-dev
 
 RUN git clone -b v10 https://github.com/pengutronix/genimage \
 	&& cd /genimage \
@@ -164,8 +161,7 @@ FROM amd64/alpine:3.10 AS finalize
 RUN apk add --no-cache \
 	confuse \
 	e2fsprogs \
-	mtools \
-	&& rm -rf /var/cache/apk/*
+	mtools
 
 COPY --from=genimage /usr/local/bin/genimage /usr/local/bin/
 COPY --from=run_playbooks / /rpi
