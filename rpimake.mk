@@ -70,8 +70,8 @@ define DOCKERFILE_PLAYBOOK
 COPY $(D) ./
 RUN sudo -u pi ANSIBLE_FORCE_COLOR=true /ansible/lib/ld-musl-x86_64.so.1 \
 	--library-path=/ansible/lib:/ansible/usr/lib \
-	/ansible/usr/bin/python3.7 /ansible/usr/bin/ansible-playbook -i /ansible/inv.ini playbook.yml
-RUN rm -rf ./*
+	/ansible/usr/bin/python3.7 /ansible/usr/bin/ansible-playbook -i /ansible/inv.ini playbook.yml \
+	&& rm -rf ./*
 endef
 
 define DOCKERFILE
