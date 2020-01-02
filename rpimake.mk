@@ -26,7 +26,7 @@ image boot.img {\n\
 	vfat {\n\
 		extraargs = "-n boot -F 32"\n\
 	}\n\
-	size = 48M\n\
+	size = 60M\n\
 }\n\
 ' > genimage.cfg
 genimage --rootpath /rpi/boot --inputpath / --outputpath /
